@@ -1,0 +1,21 @@
+diff --git a/node_modules/mdui/.bun-tag-36c5c03c97f49b32 b/.bun-tag-36c5c03c97f49b32
+new file mode 100644
+index 0000000000000000000000000000000000000000..e69de29bb2d1d6434b8b29ae775ad8c2e48c5391
+diff --git a/jsx.en.d.ts b/jsx.en.d.ts
+index bbac39eff760c4515ab154be061168b90cbe75b9..4c7a1040ef4aaab5534d98d52bbcdcff6c30c90f 100644
+--- a/jsx.en.d.ts
++++ b/jsx.en.d.ts
+@@ -1,9 +1,10 @@
+-import React from 'react';
++import { ComponentProps } from 'solid-js';
++import { JSX } from 'solid-js/jsx-runtime';
+ import { JQ } from '@mdui/jq';
+ 
+-type HTMLElementProps = React.DetailedHTMLProps<React.HTMLAttributes<HTMLElement>, HTMLElement>;
++type HTMLElementProps = ComponentProps<keyof (JSX.HTMLElementTags & JSX.SVGElementTags & JSX.HTMLElementDeprecatedTags)>;
+ 
+-declare global {
++declare module 'solid-js' {
+   namespace JSX {
+     interface IntrinsicElements {
+       /**

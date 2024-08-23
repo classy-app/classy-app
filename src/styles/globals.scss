@@ -1,0 +1,12 @@
+:root {
+  display: initial;
+}
+
+body {
+  font-family: Roboto, sans-serif;
+}
+
+// FOUC fix
+:has(:not(:defined)) {
+  visibility: hidden;
+}

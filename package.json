@@ -1,0 +1,37 @@
+{
+  "name": "@classy-app/classy-app",
+  "type": "module",
+  "scripts": {
+    "dev": "vinxi dev",
+    "build": "vinxi build",
+    "start": "vinxi start",
+    "version": "vinxi version"
+  },
+  "dependencies": {
+    "@solidjs/meta": "^0.29.4",
+    "@solidjs/router": "^0.14.1",
+    "@solidjs/start": "^1.0.6",
+    "@trpc/client": "^10.45.2",
+    "@trpc/server": "^10.45.2",
+    "@typeschema/valibot": "^0.13.5",
+    "drizzle-orm": "^0.33.0",
+    "mdui": "^2.1.2",
+    "paseto-ts": "^1.5.7",
+    "sass": "^1.77.8",
+    "solid-js": "^1.8.18",
+    "valibot": "^0.38.0",
+    "vinxi": "^0.4.1"
+  },
+  "engines": {
+    "node": ">=18"
+  },
+  "patchedDependencies": {
+    "mdui@2.1.2": "patches/mdui@2.1.2.patch"
+  },
+  "devDependencies": {
+    "@biomejs/biome": "^1.8.3",
+    "drizzle-kit": "^0.24.1",
+    "typescript": "^5.5.4"
+  },
+  "trustedDependencies": ["@biomejs/biome", "esbuild"]
+}
