@@ -1,4 +1,5 @@
 {
+  "extends": ["@tsconfig/strictest"],
   "compilerOptions": {
     "target": "ESNext",
     "module": "ESNext",
@@ -11,6 +12,9 @@
     "strict": true,
     "noEmit": true,
     "types": ["vinxi/types/client", "mdui/jsx.en"],
-    "isolatedModules": true
+    "isolatedModules": true,
+    "paths": {
+      "~/*": ["./src/*"]
+    }
   }
 }
