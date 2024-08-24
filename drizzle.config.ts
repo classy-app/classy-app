@@ -1,10 +1,11 @@
 import { defineConfig } from 'drizzle-kit'
 
 export default defineConfig({
+    dialect: 'postgresql',
+    schema: './src/models/index.ts',
     dbCredentials: {
-        url: 'file:./drizzle/db.sqlite',
+        url: 'postgres://postgres:postgres@localhost:5432/drizzle',
     },
-    dialect: 'sqlite',
     out: './drizzle',
     migrations: {
         prefix: 'timestamp',
