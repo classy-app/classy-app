@@ -9,13 +9,17 @@ import { useAction } from '@solidjs/router'
 import {
     createAdminAction,
     createStudentAction,
+    createTeacherAction,
     deleteAdminAction,
     deleteStudentAction,
+    deleteTeacherAction,
     getAdmin,
     getStudent,
+    getTeacher,
 } from '~/lib/api'
 
-const id = '12345'
+const studentId = '12345'
+const teacherId = 't_12345'
 const adminId = 'admin'
 
 export default () => {
@@ -23,6 +27,8 @@ export default () => {
     const deleteStudent = useAction(deleteStudentAction)
     const createAdmin = useAction(createAdminAction)
     const deleteAdmin = useAction(deleteAdminAction)
+    const createTeacher = useAction(createTeacherAction)
+    const deleteTeacher = useAction(deleteTeacherAction)
 
     return (
         <main>
@@ -32,7 +38,7 @@ export default () => {
                     variant="filled"
                     onClick={() =>
                         createStudent({
-                            id,
+                            id: studentId,
                             name: 'Palm',
                             email: 'contact@palmdevs.me',
                             phone: '1234567890',
@@ -48,7 +54,7 @@ export default () => {
                 <mdui-button
                     variant="filled"
                     onClick={() =>
-                        getStudent(id).then(([student, error]) => {
+                        getStudent(studentId).then(([student, error]) => {
                             if (error) return void alert({ headline: 'Error', description: error.message })
                             alert({
                                 headline: 'Student information',
@@ -62,7 +68,7 @@ export default () => {
                 <mdui-button
                     variant="tonal"
                     onClick={() =>
-                        deleteStudent(id).then(([_, error]) => {
+                        deleteStudent(studentId).then(([_, error]) => {
                             if (error) return void alert({ headline: 'Error', description: error.message })
                             alert({ headline: 'Student deleted' })
                         })
@@ -113,6 +119,50 @@ export default () => {
                     }
                 >
                     Delete admin
+                </mdui-button>
+            </div>
+            <div>
+                <mdui-button
+                    variant="filled"
+                    onClick={() =>
+                        createTeacher({
+                            id: teacherId,
+                            name: 'Mrs. Sarah',
+                            email: 'sarah@palmdevs.me',
+                            phone: '1234567890',
+                            password: 'password',
+                        }).then(([teacher, error]) => {
+                            if (error) return void alert({ headline: 'Error', description: error.message })
+                            alert({ headline: 'Teacher created', description: JSON.stringify(teacher, undefined, 4) })
+                        })
+                    }
+                >
+                    Create teacher
+                </mdui-button>
+                <mdui-button
+                    variant="filled"
+                    onClick={() =>
+                        getTeacher(teacherId).then(([teacher, error]) => {
+                            if (error) return void alert({ headline: 'Error', description: error.message })
+                            alert({
+                                headline: 'Teacher information',
+                                description: JSON.stringify(teacher, undefined, 4),
+                            })
+                        })
+                    }
+                >
+                    Get teacher
+                </mdui-button>
+                <mdui-button
+                    variant="tonal"
+                    onClick={() =>
+                        deleteTeacher(teacherId).then(([_, error]) => {
+                            if (error) return void alert({ headline: 'Error', description: error.message })
+                            alert({ headline: 'Teacher deleted' })
+                        })
+                    }
+                >
+                    Delete teacher
                 </mdui-button>
             </div>
         </main>
