@@ -9,7 +9,7 @@
       "recommended": true,
       "a11y": {
         "useKeyWithClickEvents": {
-          "level": "warn"
+          "level": "off"
         }
       },
       "style": {
