@@ -44,6 +44,7 @@ export default () => {
                             phone: '1234567890',
                             password: 'password',
                         }).then(([student, error]) => {
+                            console.log(student)
                             if (error) return void alert({ headline: 'Error', description: error.message })
                             alert({ headline: 'Student created', description: JSON.stringify(student, undefined, 4) })
                         })

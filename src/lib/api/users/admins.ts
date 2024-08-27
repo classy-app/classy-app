@@ -10,7 +10,7 @@ import db from '~/lib/db'
 
 import { type Entity, generateSecurityFields, pickSharableFields, type DataOrErrorTuple } from './utils'
 
-export type Admin = ReturnType<typeof pickSharableFields<typeof admins['$inferInsert'] & Entity, true>>
+export type Admin = ReturnType<typeof pickSharableFields<(typeof admins)['$inferInsert'] & Entity, true>>
 
 export const getAdmin = cache(async (id: string): Promise<DataOrErrorTuple<Admin>> => {
     'use server'
@@ -33,15 +33,15 @@ export const getAdmin = cache(async (id: string): Promise<DataOrErrorTuple<Admin
     }
 }, 'getAdmin')
 
-export const createAdminAction = action(async (data: AdminInsert): Promise<DataOrErrorTuple<CustomResponse<Admin>>> => {
+export const createAdminAction = action(async (data: AdminInsert): Promise<CustomResponse<DataOrErrorTuple<Admin>>> => {
     'use server'
 
     try {
         const { success: parseSuccess, output: input } = safeParse(AdminInsertSchema, data)
-        if (!parseSuccess) return [null, new Error('Malformed request')]
+        if (!parseSuccess) return json([null, new Error('Malformed request')])
 
         const ogAdmin = await db.query.admins.findFirst({ where: eq(admins.id, input.id) })
-        if (ogAdmin) return [null, new Error('Admin already exists')]
+        if (ogAdmin) return json([null, new Error('Admin already exists')])
 
         const [entity] = await db
             .insert(entities)
@@ -57,35 +57,35 @@ export const createAdminAction = action(async (data: AdminInsert): Promise<DataO
         const [admin] = await db.insert(admins).values({ id: input.id }).returning()
         if (!admin) throw new Error('Database did not return the created admin')
 
-        return [
-            json(
+        return json(
+            [
                 pickSharableFields({
                     ...admin,
                     ...entity,
                 }),
-                { revalidate: getAdmin.keyFor(admin.id) },
-            ),
-            null,
-        ]
+                null,
+            ],
+            { revalidate: getAdmin.keyFor(admin.id) },
+        )
     } catch (e) {
         console.error('Error while creating student:', e)
-        return [null, new Error('Internal server error')]
+        return json([null, new Error('Internal server error')])
     }
 })
 
-export const deleteAdminAction = action(async (id: string): Promise<DataOrErrorTuple<CustomResponse<boolean>>> => {
+export const deleteAdminAction = action(async (id: string): Promise<CustomResponse<DataOrErrorTuple<boolean>>> => {
     'use server'
 
     try {
         const admin = await db.query.admins.findFirst({ where: eq(admins.id, id) })
-        if (!admin) return [null, new Error('Admin does not exist')]
+        if (!admin) return json([null, new Error('Admin does not exist')])
 
         await db.delete(admins).where(eq(admins.id, id))
         await db.delete(entities).where(eq(entities.id, id))
 
-        return [json(true, { revalidate: getAdmin.keyFor(id) }), null]
+        return json([true, null], { revalidate: getAdmin.keyFor(id) })
     } catch (e) {
         console.error('Error while deleting admin:', e)
-        return [null, new Error('Internal server error')]
+        return json([null, new Error('Internal server error')])
     }
 })
