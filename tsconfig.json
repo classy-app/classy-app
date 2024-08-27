@@ -11,6 +11,7 @@
     "allowJs": true,
     "strict": true,
     "noEmit": true,
+    "exactOptionalPropertyTypes": false,
     "types": ["vinxi/types/client", "mdui/jsx.en"],
     "isolatedModules": true,
     "paths": {
