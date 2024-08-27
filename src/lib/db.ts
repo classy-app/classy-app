@@ -8,7 +8,7 @@ const client = new pg.Client({
 
 await client.connect()
 
-export const db = drizzle(client, { schema: models })
+export default drizzle(client, { schema: models })
 
 declare global {
     namespace NodeJS {
