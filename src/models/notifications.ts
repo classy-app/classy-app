@@ -1,6 +1,6 @@
 import { relations } from 'drizzle-orm'
 import { pgEnum, pgTable } from 'drizzle-orm/pg-core'
-import { createIdField, createLinkedIdField, idField } from './base'
+import { createLinkedIdField, idField } from './base'
 import { users } from './entities'
 
 export const notificationTypes = pgEnum('notification_type', [

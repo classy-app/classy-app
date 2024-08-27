@@ -1,5 +1,5 @@
 import { relations } from 'drizzle-orm'
-import { pgEnum, pgTable, text, varchar } from 'drizzle-orm/pg-core'
+import { pgEnum, pgTable, varchar } from 'drizzle-orm/pg-core'
 import { idField, nameField } from './base'
 import { assignments } from './classes'
 import { studentsToClasses, teachersToClasses } from './many-relations/classes-students+teachers'
@@ -18,10 +18,16 @@ export const entities = pgTable('entities', {
     // Max length of a phone number is 15 characters
     phone: varchar('phone', { length: 15 }).notNull(),
     // TODO: Add max length for avatar and sessions
-    avatar: text('avatar'),
-    // TODO: Include more information by making a table for sessions
+    avatar: varchar('avatar', { length: 256 }),
+    // TODO: Multiple sessions with information by making a table for sessions, like device, IP, etc.
     // sessions: text('sessions').array().notNull().default([]),
-    twoFactorSecret: varchar('secret', { length: 20 }),
+    // PASETO keys are 32 bytes long
+    secretKey: varchar('sk', { length: 128 }).notNull(),
+    publicKey: varchar('pk', { length: 128 }).notNull(),
+    // Bcrypt hashes are at most 60 characters long
+    authHash: varchar('auth_hash', { length: 60 }).notNull(),
+    // Recommended length for 2FA secrets is 20 characters
+    twoFactorSecret: varchar('tf_secret', { length: 20 }),
     type: entityTypes('type').notNull(),
 })
 

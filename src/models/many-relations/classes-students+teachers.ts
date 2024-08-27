@@ -1,6 +1,6 @@
 import { relations } from 'drizzle-orm'
 import { pgTable, primaryKey } from 'drizzle-orm/pg-core'
-import { createIdField, createLinkedIdField } from '../base'
+import { createLinkedIdField } from '../base'
 import { classes } from '../classes'
 import { students, teachers } from '../entities'
 

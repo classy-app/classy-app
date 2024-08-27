@@ -1,10 +1,10 @@
 import { relations } from 'drizzle-orm'
 import { date, integer, pgEnum, pgTable, varchar } from 'drizzle-orm/pg-core'
 import { attachments } from './attachments'
-import { createIdField, createLinkedIdField, createNullableLinkedIdField, idField, nameField } from './base'
+import { createLinkedIdField, createNullableLinkedIdField, idField, nameField } from './base'
+import { students } from './entities'
 import { studentsToClasses, teachersToClasses } from './many-relations/classes-students+teachers'
 import { spaces } from './spaces'
-import { students } from './entities'
 
 /// CLASSES
 
