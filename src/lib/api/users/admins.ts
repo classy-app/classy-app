@@ -1,5 +1,3 @@
-// TODO: Protect these routes
-
 import { type CustomResponse, action, cache, json } from '@solidjs/router'
 import { eq } from 'drizzle-orm'
 import { safeParse } from 'valibot'
@@ -9,22 +7,26 @@ import { type AdminInsert, AdminInsertSchema } from '~/schemas/insert'
 import db from '~/lib/db'
 
 import { type Entity, generateSecurityFields, pickSharableFields, type DataOrErrorTuple } from './utils'
+import { getEntityFromToken } from './sessions'
 
 export type Admin = ReturnType<typeof pickSharableFields<(typeof admins)['$inferInsert'] & Entity, true>>
 
-export const getAdmin = cache(async (id: string): Promise<DataOrErrorTuple<Admin>> => {
+export const getAdmin = cache(async (token: string, id: string): Promise<DataOrErrorTuple<Admin>> => {
     'use server'
 
     try {
+        const [session, error] = await getEntityFromToken(token)
+        if (error) return [null, error]
+        if (session.entity.type !== 'admin') return [null, new Error('Unauthorized')]
+
         const admin = await db.query.admins.findFirst({ where: eq(admins.id, id), with: { entity: true } })
         if (!admin) return [null, new Error('Admin does not exist')]
 
-        // TODO: Check auth token and include extra fields if needed
         return [
             pickSharableFields({
                 ...admin,
                 ...admin.entity,
-            }),
+            }, true),
             null,
         ]
     } catch (e) {
@@ -33,10 +35,14 @@ export const getAdmin = cache(async (id: string): Promise<DataOrErrorTuple<Admin
     }
 }, 'getAdmin')
 
-export const createAdminAction = action(async (data: AdminInsert): Promise<CustomResponse<DataOrErrorTuple<Admin>>> => {
+export const createAdminAction = action(async (token: string, data: AdminInsert): Promise<CustomResponse<DataOrErrorTuple<Admin>>> => {
     'use server'
 
     try {
+        const [session, error] = await getEntityFromToken(token)
+        if (error) return json([null, error])
+        if (session.entity.type !== 'admin') return json([null, new Error('Unauthorized')])
+
         const { success: parseSuccess, output: input } = safeParse(AdminInsertSchema, data)
         if (!parseSuccess) return json([null, new Error('Malformed request')])
 
@@ -62,10 +68,10 @@ export const createAdminAction = action(async (data: AdminInsert): Promise<Custo
                 pickSharableFields({
                     ...admin,
                     ...entity,
-                }),
+                }, true),
                 null,
             ],
-            { revalidate: getAdmin.keyFor(admin.id) },
+            { revalidate: getAdmin.keyFor(token, admin.id) },
         )
     } catch (e) {
         console.error('Error while creating student:', e)
@@ -73,17 +79,21 @@ export const createAdminAction = action(async (data: AdminInsert): Promise<Custo
     }
 })
 
-export const deleteAdminAction = action(async (id: string): Promise<CustomResponse<DataOrErrorTuple<boolean>>> => {
+export const deleteAdminAction = action(async (token: string, id: string): Promise<CustomResponse<DataOrErrorTuple<boolean>>> => {
     'use server'
 
     try {
+        const [session, error] = await getEntityFromToken(token)
+        if (error) return json([null, error])
+        if (session.entity.type !== 'admin') return json([null, new Error('Unauthorized')])
+
         const admin = await db.query.admins.findFirst({ where: eq(admins.id, id) })
         if (!admin) return json([null, new Error('Admin does not exist')])
 
         await db.delete(admins).where(eq(admins.id, id))
         await db.delete(entities).where(eq(entities.id, id))
 
-        return json([true, null], { revalidate: getAdmin.keyFor(id) })
+        return json([true, null], { revalidate: getAdmin.keyFor(token, id) })
     } catch (e) {
         console.error('Error while deleting admin:', e)
         return json([null, new Error('Internal server error')])

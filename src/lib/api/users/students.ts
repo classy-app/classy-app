@@ -13,13 +13,17 @@ import {
     insertEntityAndUser,
     pickSharableFields,
 } from './utils'
+import { getEntityFromToken } from './sessions'
 
 export type Student = ReturnType<typeof pickSharableFields<(typeof students)['$inferInsert'] & EntityUser, boolean>>
 
-export const getStudent = cache(async (id: string): Promise<DataOrErrorTuple<Student>> => {
+export const getStudent = cache(async (token: string, id: string): Promise<DataOrErrorTuple<Student>> => {
     'use server'
 
     try {
+        const [session, error] = await getEntityFromToken(token)
+        if (error) return [null, error]
+
         const student = await db.query.students.findFirst({
             where: eq(students.id, id),
             with: {
@@ -29,13 +33,12 @@ export const getStudent = cache(async (id: string): Promise<DataOrErrorTuple<Stu
 
         if (!student) return [null, new Error('Student does not exist')]
 
-        // TODO: Check auth token and include extra fields if needed
         return [
             pickSharableFields({
                 ...student,
                 ...student.user,
                 ...student.user.entity,
-            }),
+            }, session.entity.id === id || session.entity.type === 'teacher' || session.entity.type === 'admin'),
             null,
         ]
     } catch (e) {
@@ -44,12 +47,15 @@ export const getStudent = cache(async (id: string): Promise<DataOrErrorTuple<Stu
     }
 }, 'getStudent')
 
-// TODO: Protect this route
 export const createStudentAction = action(
-    async (data: StudentInsert): Promise<CustomResponse<DataOrErrorTuple<Student>>> => {
+    async (token: string, data: StudentInsert): Promise<CustomResponse<DataOrErrorTuple<Student>>> => {
         'use server'
 
         try {
+            const [session, error] = await getEntityFromToken(token)
+            if (error) return json([null, error])
+            if (session.entity.type !== 'admin') return json([null, new Error('Unauthorized')])
+
             const { success: parseSuccess, output: input } = safeParse(StudentInsertSchema, data)
             if (!parseSuccess) return json([null, new Error('Malformed request')])
 
@@ -71,10 +77,10 @@ export const createStudentAction = action(
                         ...student,
                         ...user,
                         ...entity,
-                    }),
+                    }, true),
                     null,
                 ],
-                { revalidate: getStudent.keyFor(student.id) },
+                { revalidate: getStudent.keyFor(token, student.id) },
             )
         } catch (e) {
             console.error('Error while creating student:', e)
@@ -83,11 +89,14 @@ export const createStudentAction = action(
     },
 )
 
-// TODO: Protect this route
-export const deleteStudentAction = action(async (id: string): Promise<CustomResponse<DataOrErrorTuple<boolean>>> => {
+export const deleteStudentAction = action(async (token: string, id: string): Promise<CustomResponse<DataOrErrorTuple<boolean>>> => {
     'use server'
 
     try {
+        const [session, error] = await getEntityFromToken(token)
+        if (error) return json([null, error])
+        if (session.entity.type !== 'admin') return json([null, new Error('Unauthorized')])
+
         const student = await db.query.students.findFirst({ where: eq(students.id, id) })
         if (!student) return json([null, new Error('Student does not exist')])
 
@@ -95,7 +104,7 @@ export const deleteStudentAction = action(async (id: string): Promise<CustomResp
         await db.delete(users).where(eq(users.id, id))
         await db.delete(entities).where(eq(entities.id, id))
 
-        return json([true, null], { revalidate: getStudent.keyFor(id) })
+        return json([true, null], { revalidate: getStudent.keyFor(token, id) })
     } catch (e) {
         console.error('Error while deleting student:', e)
         return json([null, new Error('Internal server error')])

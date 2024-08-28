@@ -8,6 +8,7 @@ import 'mdui/components/button'
 import { useAction } from '@solidjs/router'
 import {
     createAdminAction,
+    createSessionAction,
     createStudentAction,
     createTeacherAction,
     deleteAdminAction,
@@ -17,27 +18,32 @@ import {
     getStudent,
     getTeacher,
 } from '~/lib/api'
+import { createSignal } from 'solid-js'
 
 const studentId = '12345'
 const teacherId = 't_12345'
 const adminId = 'admin'
 
 export default () => {
+    const [token, setToken] = createSignal('')
+
     const createStudent = useAction(createStudentAction)
     const deleteStudent = useAction(deleteStudentAction)
     const createAdmin = useAction(createAdminAction)
     const deleteAdmin = useAction(deleteAdminAction)
     const createTeacher = useAction(createTeacherAction)
     const deleteTeacher = useAction(deleteTeacherAction)
+    const createSession = useAction(createSessionAction)
 
     return (
         <main>
             <h1>Classy app</h1>
+            <p>Current token: <code>{token()}</code></p>
             <div>
                 <mdui-button
                     variant="filled"
                     onClick={() =>
-                        createStudent({
+                        createStudent(token(), {
                             id: studentId,
                             name: 'Palm',
                             email: 'contact@palmdevs.me',
@@ -55,7 +61,7 @@ export default () => {
                 <mdui-button
                     variant="filled"
                     onClick={() =>
-                        getStudent(studentId).then(([student, error]) => {
+                        getStudent(token(), studentId).then(([student, error]) => {
                             if (error) return void alert({ headline: 'Error', description: error.message })
                             alert({
                                 headline: 'Student information',
@@ -69,7 +75,7 @@ export default () => {
                 <mdui-button
                     variant="tonal"
                     onClick={() =>
-                        deleteStudent(studentId).then(([_, error]) => {
+                        deleteStudent(token(), studentId).then(([_, error]) => {
                             if (error) return void alert({ headline: 'Error', description: error.message })
                             alert({ headline: 'Student deleted' })
                         })
@@ -82,7 +88,7 @@ export default () => {
                 <mdui-button
                     variant="filled"
                     onClick={() =>
-                        createAdmin({
+                        createAdmin(token(), {
                             id: adminId,
                             name: 'Admin',
                             email: 'classy@products.palmdevs.me',
@@ -99,7 +105,7 @@ export default () => {
                 <mdui-button
                     variant="filled"
                     onClick={() =>
-                        getAdmin(adminId).then(([admin, error]) => {
+                        getAdmin(token(), adminId).then(([admin, error]) => {
                             if (error) return void alert({ headline: 'Error', description: error.message })
                             alert({
                                 headline: 'Admin information',
@@ -113,7 +119,7 @@ export default () => {
                 <mdui-button
                     variant="tonal"
                     onClick={() =>
-                        deleteAdmin(adminId).then(([_, error]) => {
+                        deleteAdmin(token(), adminId).then(([_, error]) => {
                             if (error) return void alert({ headline: 'Error', description: error.message })
                             alert({ headline: 'Admin deleted' })
                         })
@@ -126,7 +132,7 @@ export default () => {
                 <mdui-button
                     variant="filled"
                     onClick={() =>
-                        createTeacher({
+                        createTeacher(token(), {
                             id: teacherId,
                             name: 'Mrs. Sarah',
                             email: 'sarah@palmdevs.me',
@@ -143,7 +149,7 @@ export default () => {
                 <mdui-button
                     variant="filled"
                     onClick={() =>
-                        getTeacher(teacherId).then(([teacher, error]) => {
+                        getTeacher(token(), teacherId).then(([teacher, error]) => {
                             if (error) return void alert({ headline: 'Error', description: error.message })
                             alert({
                                 headline: 'Teacher information',
@@ -157,13 +163,51 @@ export default () => {
                 <mdui-button
                     variant="tonal"
                     onClick={() =>
-                        deleteTeacher(teacherId).then(([_, error]) => {
+                        deleteTeacher(token(), teacherId).then(([_, error]) => {
                             if (error) return void alert({ headline: 'Error', description: error.message })
                             alert({ headline: 'Teacher deleted' })
                         })
                     }
                 >
                     Delete teacher
+                </mdui-button>
+            </div>
+            <div>
+            <mdui-button
+                    variant="filled"
+                    onClick={() =>
+                        createSession(studentId, 'password').then(([session, error]) => {
+                            if (error) return void alert({ headline: 'Error', description: error.message })
+                            setToken(session)
+                            alert({ headline: 'Student session created', description: session })
+                        })
+                    }
+                >
+                    Login as student
+                </mdui-button>
+                <mdui-button
+                    variant="filled"
+                    onClick={() =>
+                        createSession(teacherId, 'password').then(([session, error]) => {
+                            if (error) return void alert({ headline: 'Error', description: error.message })
+                            setToken(session)
+                            alert({ headline: 'Teacher session created', description: session })
+                        })
+                    }
+                >
+                    Login as teacher
+                </mdui-button>
+                <mdui-button
+                    variant="filled"
+                    onClick={() =>
+                        createSession(adminId, 'password').then(([session, error]) => {
+                            if (error) return void alert({ headline: 'Error', description: error.message })
+                            setToken(session)
+                            alert({ headline: 'Admin session created', description: session })
+                        })
+                    }
+                >
+                    Login as admin
                 </mdui-button>
             </div>
         </main>
