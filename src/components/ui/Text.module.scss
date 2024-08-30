@@ -1,0 +1,13 @@
+$types: display, headline, title, body, label;
+$sizes: large, medium, small;
+
+@each $type in $types {
+  @each $size in $sizes {
+    .#{$type}-#{$size} {
+      font-size: var(--mdui-typescale-#{$type}-#{$size}-size);
+      font-weight: var(--mdui-typescale-#{$type}-#{$size}-weight);
+      line-height: var(--mdui-typescale-#{$type}-#{$size}-line-height);
+      letter-spacing: var(--mdui-typescale-#{$type}-#{$size}-tracking);
+    }
+  }
+}
