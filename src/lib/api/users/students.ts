@@ -2,10 +2,11 @@ import { type CustomResponse, action, cache, json } from '@solidjs/router'
 import { eq } from 'drizzle-orm'
 import { safeParse } from 'valibot'
 
-import { entities, students, users } from '~/models'
 import db from '~/lib/db'
+import { entities, students, users } from '~/models'
 import { type StudentInsert, StudentInsertSchema } from '~/schemas/insert'
 
+import { getSession } from './sessions'
 import {
     type DataOrErrorTuple,
     type EntityUser,
@@ -13,7 +14,6 @@ import {
     insertEntityAndUser,
     pickSharableFields,
 } from './utils'
-import { getEntityFromToken } from './sessions'
 
 export type Student = ReturnType<typeof pickSharableFields<(typeof students)['$inferInsert'] & EntityUser, boolean>>
 
@@ -21,7 +21,7 @@ export const getStudent = cache(async (token: string, id: string): Promise<DataO
     'use server'
 
     try {
-        const [session, error] = await getEntityFromToken(token)
+        const [session, error] = await getSession(token)
         if (error) return [null, error]
 
         const student = await db.query.students.findFirst({
@@ -34,11 +34,14 @@ export const getStudent = cache(async (token: string, id: string): Promise<DataO
         if (!student) return [null, new Error('Student does not exist')]
 
         return [
-            pickSharableFields({
-                ...student,
-                ...student.user,
-                ...student.user.entity,
-            }, session.entity.id === id || session.entity.type === 'teacher' || session.entity.type === 'admin'),
+            pickSharableFields(
+                {
+                    ...student,
+                    ...student.user,
+                    ...student.user.entity,
+                },
+                session.entity.id === id || session.entity.type === 'teacher' || session.entity.type === 'admin',
+            ),
             null,
         ]
     } catch (e) {
@@ -52,7 +55,7 @@ export const createStudentAction = action(
         'use server'
 
         try {
-            const [session, error] = await getEntityFromToken(token)
+            const [session, error] = await getSession(token)
             if (error) return json([null, error])
             if (session.entity.type !== 'admin') return json([null, new Error('Unauthorized')])
 
@@ -73,11 +76,14 @@ export const createStudentAction = action(
 
             return json(
                 [
-                    pickSharableFields({
-                        ...student,
-                        ...user,
-                        ...entity,
-                    }, true),
+                    pickSharableFields(
+                        {
+                            ...student,
+                            ...user,
+                            ...entity,
+                        },
+                        true,
+                    ),
                     null,
                 ],
                 { revalidate: getStudent.keyFor(token, student.id) },
@@ -89,24 +95,26 @@ export const createStudentAction = action(
     },
 )
 
-export const deleteStudentAction = action(async (token: string, id: string): Promise<CustomResponse<DataOrErrorTuple<boolean>>> => {
-    'use server'
+export const deleteStudentAction = action(
+    async (token: string, id: string): Promise<CustomResponse<DataOrErrorTuple<boolean>>> => {
+        'use server'
 
-    try {
-        const [session, error] = await getEntityFromToken(token)
-        if (error) return json([null, error])
-        if (session.entity.type !== 'admin') return json([null, new Error('Unauthorized')])
+        try {
+            const [session, error] = await getSession(token)
+            if (error) return json([null, error])
+            if (session.entity.type !== 'admin') return json([null, new Error('Unauthorized')])
 
-        const student = await db.query.students.findFirst({ where: eq(students.id, id) })
-        if (!student) return json([null, new Error('Student does not exist')])
+            const student = await db.query.students.findFirst({ where: eq(students.id, id) })
+            if (!student) return json([null, new Error('Student does not exist')])
 
-        await db.delete(students).where(eq(students.id, id))
-        await db.delete(users).where(eq(users.id, id))
-        await db.delete(entities).where(eq(entities.id, id))
+            await db.delete(students).where(eq(students.id, id))
+            await db.delete(users).where(eq(users.id, id))
+            await db.delete(entities).where(eq(entities.id, id))
 
-        return json([true, null], { revalidate: getStudent.keyFor(token, id) })
-    } catch (e) {
-        console.error('Error while deleting student:', e)
-        return json([null, new Error('Internal server error')])
-    }
-})
+            return json([true, null], { revalidate: getStudent.keyFor(token, id) })
+        } catch (e) {
+            console.error('Error while deleting student:', e)
+            return json([null, new Error('Internal server error')])
+        }
+    },
+)

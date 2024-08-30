@@ -1,12 +1,43 @@
 :root {
-  display: initial;
+  --mdui-space-xs: 4px;
+  --mdui-space-sm: 8px;
+  --mdui-space-md: 16px;
+  --mdui-space-lg: 24px;
+  --mdui-space-xl: 32px;
+  --mdui-space-xxl: 48px;
 }
 
 body {
+  display: flex;
+  flex-direction: column;
   font-family: Roboto, sans-serif;
+  padding: 0;
+  margin: 0;
 }
 
-// FOUC fix
-:has(:not(:defined)) {
-  visibility: hidden;
+main {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  height: 100dvh;
+}
+
+h1, h2, h3, h4, h5, h6, p, label {
+  font-weight: normal;
+  margin: 0;
+}
+
+h1, h2, h3, h4, h5, h6 {
+  color: var(--mdui-color-on-surface);
+}
+
+p, span, label {
+  color: var(--mdui-color-on-surface-variant);
+}
+
+p {
+  font-size: var(--mdui-typescale-body-medium-size);
+  font-weight: var(--mdui-typescale-body-medium-weight);
+  line-height: var(--mdui-typescale-body-medium-line-height);
+  letter-spacing: var(--mdui-typescale-body-medium-tracking);
 }

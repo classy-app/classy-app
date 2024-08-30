@@ -2,10 +2,11 @@ import { type CustomResponse, action, cache, json } from '@solidjs/router'
 import { eq } from 'drizzle-orm'
 import { safeParse } from 'valibot'
 
-import { entities, teachers, users } from '~/models'
 import db from '~/lib/db'
+import { entities, teachers, users } from '~/models'
 import { type TeacherInsert, TeacherInsertSchema } from '~/schemas/insert'
 
+import { getSession } from './sessions'
 import {
     type DataOrErrorTuple,
     type EntityUser,
@@ -13,7 +14,6 @@ import {
     insertEntityAndUser,
     pickSharableFields,
 } from './utils'
-import { getEntityFromToken } from './sessions'
 
 export type Teacher = ReturnType<typeof pickSharableFields<(typeof teachers)['$inferInsert'] & EntityUser, boolean>>
 
@@ -21,7 +21,7 @@ export const getTeacher = cache(async (token: string, id: string): Promise<DataO
     'use server'
 
     try {
-        const [session, error] = await getEntityFromToken(token)
+        const [session, error] = await getSession(token)
         if (error) return [null, error]
 
         const teacher = await db.query.teachers.findFirst({
@@ -34,11 +34,14 @@ export const getTeacher = cache(async (token: string, id: string): Promise<DataO
         if (!teacher) return [null, new Error('Teacher does not exist')]
 
         return [
-            pickSharableFields({
-                ...teacher,
-                ...teacher.user,
-                ...teacher.user.entity,
-            }, session.entity.id === id || session.entity.type === 'admin'),
+            pickSharableFields(
+                {
+                    ...teacher,
+                    ...teacher.user,
+                    ...teacher.user.entity,
+                },
+                session.entity.id === id || session.entity.type === 'admin',
+            ),
             null,
         ]
     } catch (e) {
@@ -52,10 +55,10 @@ export const createTeacherAction = action(
         'use server'
 
         try {
-            const [session, error] = await getEntityFromToken(token)
+            const [session, error] = await getSession(token)
             if (error) return json([null, error])
             if (session.entity.type !== 'admin') return json([null, new Error('Unauthorized')])
-            
+
             const { success: parseSuccess, output: input } = safeParse(TeacherInsertSchema, data)
             if (!parseSuccess) return json([null, new Error('Malformed request')])
 
@@ -89,24 +92,26 @@ export const createTeacherAction = action(
     },
 )
 
-export const deleteTeacherAction = action(async (token: string, id: string): Promise<CustomResponse<DataOrErrorTuple<boolean>>> => {
-    'use server'
+export const deleteTeacherAction = action(
+    async (token: string, id: string): Promise<CustomResponse<DataOrErrorTuple<boolean>>> => {
+        'use server'
 
-    try {
-        const [session, error] = await getEntityFromToken(token)
-        if (error) return json([null, error])
-        if (session.entity.type !== 'admin') return json([null, new Error('Unauthorized')])
+        try {
+            const [session, error] = await getSession(token)
+            if (error) return json([null, error])
+            if (session.entity.type !== 'admin') return json([null, new Error('Unauthorized')])
 
-        const teacher = await db.query.teachers.findFirst({ where: eq(teachers.id, id) })
-        if (!teacher) return json([null, new Error('Teacher does not exist')])
+            const teacher = await db.query.teachers.findFirst({ where: eq(teachers.id, id) })
+            if (!teacher) return json([null, new Error('Teacher does not exist')])
 
-        await db.delete(teachers).where(eq(teachers.id, id))
-        await db.delete(users).where(eq(users.id, id))
-        await db.delete(entities).where(eq(entities.id, id))
+            await db.delete(teachers).where(eq(teachers.id, id))
+            await db.delete(users).where(eq(users.id, id))
+            await db.delete(entities).where(eq(entities.id, id))
 
-        return json([true, null], { revalidate: getTeacher.keyFor(token, id) })
-    } catch (e) {
-        console.error('Error while deleting teacher:', e)
-        return json([null, new Error('Internal server error')])
-    }
-})
+            return json([true, null], { revalidate: getTeacher.keyFor(token, id) })
+        } catch (e) {
+            console.error('Error while deleting teacher:', e)
+            return json([null, new Error('Internal server error')])
+        }
+    },
+)

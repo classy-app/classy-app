@@ -21,6 +21,7 @@ export const entities = pgTable('entities', {
     avatar: varchar('avatar', { length: 256 }),
     // TODO: Multiple sessions with information by making a table for sessions, like device, IP, etc.
     // sessions: text('sessions').array().notNull().default([]),
+    sessionHash: varchar('session_hash', { length: 60 }),
     // PASETO keys are 32 bytes long
     secretKey: varchar('sk', { length: 128 }).notNull(),
     publicKey: varchar('pk', { length: 128 }).notNull(),

@@ -12,8 +12,13 @@
     "strict": true,
     "noEmit": true,
     "exactOptionalPropertyTypes": false,
-    "types": ["vinxi/types/client", "mdui/jsx.en"],
+    "types": [
+      "vite-plugin-solid-svg/types-component-solid",
+      "vinxi/types/client",
+      "mdui/jsx.en"
+    ],
     "isolatedModules": true,
+    "noPropertyAccessFromIndexSignature": false,
     "paths": {
       "~/*": ["./src/*"]
     }

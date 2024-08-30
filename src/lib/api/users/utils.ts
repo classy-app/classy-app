@@ -2,8 +2,8 @@ import { includeKeys } from 'filter-obj'
 import { bcrypt } from 'hash-wasm'
 import { generateKeys } from 'paseto-ts/v4'
 
-import { entities, users } from '~/models'
 import db from '~/lib/db'
+import { entities, users } from '~/models'
 
 export type Entity = (typeof entities)['$inferInsert']
 export type EntityUser = (typeof users)['$inferInsert'] & (typeof entities)['$inferInsert']
@@ -19,7 +19,10 @@ export const generateSecurityFields = async (password: string) => {
     return { authHash, publicKey, secretKey }
 }
 
-export const pickSharableFields = <O extends Entity, B extends boolean = false>(input: O, authorized: B = false as B) => {
+export const pickSharableFields = <O extends Entity, B extends boolean = false>(
+    input: O,
+    authorized: B = false as B,
+) => {
     const fields: Array<keyof O> = ['id', 'name', 'avatar', 'type']
     if (authorized) fields.push('phone', 'email')
     return includeKeys(input, fields) as Pick<O, 'id' | 'name' | 'avatar' | 'type'> &
