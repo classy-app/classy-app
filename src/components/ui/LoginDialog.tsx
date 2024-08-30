@@ -55,22 +55,8 @@ const LoginDialog = (props: {
                     })
                 }}
             >
+                <mdui-text-field ref={idInput} variant="filled" required type="text" label="ID" />
                 <mdui-text-field
-                    onInput={() => {
-                        idInput?.setCustomValidity('')
-                        if (pwdInput?.value) pwdInput?.setCustomValidity('')
-                    }}
-                    ref={idInput}
-                    variant="filled"
-                    required
-                    type="text"
-                    label="ID"
-                />
-                <mdui-text-field
-                    onInput={() => {
-                        pwdInput?.setCustomValidity('')
-                        if (idInput?.value) idInput?.setCustomValidity('')
-                    }}
                     ref={pwdInput}
                     variant="filled"
                     required

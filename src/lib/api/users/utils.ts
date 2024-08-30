@@ -5,6 +5,7 @@ import { generateKeys } from 'paseto-ts/v4'
 import db from '~/lib/db'
 import { entities, users } from '~/models'
 
+export type SafeEntity<T extends Entity> = ReturnType<typeof pickSharableFields<T>>
 export type Entity = (typeof entities)['$inferInsert']
 export type EntityUser = (typeof users)['$inferInsert'] & (typeof entities)['$inferInsert']
 export type DataOrErrorTuple<T, E extends Error = Error> = [T, null] | [null, E]
