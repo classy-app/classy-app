@@ -14,7 +14,12 @@
       },
       "style": {
         "noNonNullAssertion": {
-          "level": "warn"
+          "level": "off"
+        }
+      },
+      "suspicious": {
+        "noAssignInExpressions": {
+          "level": "off"
         }
       }
     }
