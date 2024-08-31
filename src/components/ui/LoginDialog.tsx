@@ -43,7 +43,7 @@ const LoginDialog = (props: {
                     setComponentState('loading')
 
                     const submitter = event.submitter as HTMLInputElement
-                    if (!submitter.form?.checkValidity() || !idInput || !pwdInput) return void setComponentState('idle')
+                    if (!submitter.form?.reportValidity() || !idInput || !pwdInput) return void setComponentState('idle')
 
                     createSession(idInput.value, pwdInput.value).then(([data, error]) => {
                         if (!error) return void props.onAuthenticated?.(data)
